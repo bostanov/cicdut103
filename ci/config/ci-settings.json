@@ -1,13 +1,17 @@
 {
   "repository": {
     "url": "file://C:/1crepository",
-    "user": "",
-    "password": "",
+    "user": "gitsync",
+    "passwordEnv": "REPO_PWD",
     "path": "/"
   },
   "platform": {
     "version": "8.3.12.1714",
     "path": "C:/Program Files/1cv8/8.3.12.1714/bin/1cv8.exe"
+  },
+  "oneC": {
+    "binPath": "C:/Program Files/1cv8/8.3.12.1714/bin",
+    "tempIB": "C:/Temp/1C-CI-CD/ib"
   },
   "infobase": {
     "temp": "C:/Temp/1C-CI-CD",

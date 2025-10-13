@@ -167,7 +167,7 @@ cd C:\1C-CI-CD
 
 **Вариант A: Через GitLab UI**
 1. Открыть: http://localhost:8929/root/ut103-ci/-/settings/ci_cd
-2. Войти: root / Gitlab123Admin!
+2. Войти: root / Q49uDoyMSN85pqkqN7nuO+vXWeG00U7Hh5ov5VS+iUo=
 3. Раздел "Variables"
 4. Редактировать `REPO_PWD`
 5. Ввести пароль хранилища 1С
@@ -253,7 +253,7 @@ git push
 ### **GitLab**
 - **URL:** http://localhost:8929
 - **Логин:** root
-- **Пароль:** Gitlab123Admin!
+- **Пароль:** Q49uDoyMSN85pqkqN7nuO+vXWeG00U7Hh5ov5VS+iUo=
 - **API Token:** glpat-FDN8OJN_wecgT9yV0xIBFW86MQp1OjEH.01.0w06ztagq
 
 ### **SonarQube**
