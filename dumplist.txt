@@ -1,0 +1,2 @@
+﻿New:Catalog.новыйСправвочник
+Modified:Configuration.Конфигурация

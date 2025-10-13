@@ -130,6 +130,7 @@
 		</Properties>
 		<ChildObjects>
 			<Language>Русский</Language>
+			<Catalog>новыйСправвочник</Catalog>
 		</ChildObjects>
 	</Configuration>
 </MetaDataObject>
