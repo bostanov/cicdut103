@@ -1,6 +1,0 @@
-projectKey=ut103-ci
-serverUrl=http://localhost:9000
-serverVersion=10.3.0.82913
-dashboardUrl=http://localhost:9000/dashboard?id=ut103-ci
-ceTaskId=AZnyNMGhIjPpH9YT4ww7
-ceTaskUrl=http://localhost:9000/api/ce/task?id=AZnyNMGhIjPpH9YT4ww7
