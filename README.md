@@ -26,7 +26,7 @@
 
 ### Docker контейнеры
 
-- **PostgreSQL** (port 5433) - База данных для SonarQube и Redmine
+- **PostgreSQL** (port 5432) - База данных для SonarQube и Redmine
 - **GitLab CE** (ports 8929, 2224) - Git-сервер и CI/CD
 - **SonarQube** (port 9000) - Анализ качества кода 1С (с BSL plugin)
 - **Redmine** (port 3000) - Управление задачами
@@ -111,8 +111,11 @@ git push origin main
 
 ## Документация
 
+- [Сводка развертывания](docs/CI-CD/DEPLOYMENT-SUMMARY.md) - Текущий статус развертывания
 - [Изменение пути к хранилищу](docs/CI-CD/CHANGING-REPOSITORY-PATH.md)
 - [Настройка Stage 0 (ручная)](docs/CI-CD/MANUAL-STAGE-0.md)
+- [Полное руководство по установке](docs/CI-CD/INSTALLATION-GUIDE.md)
+- [Руководство пользователя](docs/CI-CD/USAGE-GUIDE.md)
 
 ## Техническая поддержка
 
