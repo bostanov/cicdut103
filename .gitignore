@@ -1,0 +1,24 @@
+# Build artifacts
+build/
+*.log
+*.tmp
+
+# 1C specific
+*.epf
+*.erf
+!externals/*.epf
+!externals/*.erf
+
+# Temporary files
+*.bak
+*.~*
+*~
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace

@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "checkModules": true,
+  "checkExternals": true,
+  "rules": {
+    "failOnCritical": true,
+    "failOnErrors": true,
+    "failOnWarnings": false
+  },
+  "reports": {
+    "outputDir": "build/reports/precommit1c",
+    "format": "junit"
+  },
+  "excludes": [
+    "**/build/**",
+    "**/*.md",
+    "**/.git/**"
+  ]
+}

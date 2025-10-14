@@ -1,0 +1,29 @@
+{
+  "repository": {
+    "url": "file://C:/1crepository",
+    "user": "",
+    "password": "",
+    "path": "/"
+  },
+  "platform": {
+    "version": "8.3.12.1714",
+    "path": "C:/Program Files/1cv8/8.3.12.1714/bin/1cv8.exe"
+  },
+  "infobase": {
+    "temp": "C:/Temp/1C-CI-CD",
+    "name": "ut103_ci"
+  },
+  "intervals": {
+    "syncMinutes": 60,
+    "checkMinutes": 15
+  },
+  "sonar": {
+    "host": "http://localhost:9000",
+    "projectKey": "ut103",
+    "projectName": "UT 10.3"
+  },
+  "redmine": {
+    "host": "http://localhost:3000",
+    "projectKey": "ut103"
+  }
+}
