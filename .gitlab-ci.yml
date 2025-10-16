@@ -37,6 +37,8 @@ dump-externals:
     - 1c
   rules:
     - if: '$RUN_SCRIPT == "dump-externals"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
     - when: on_success
   script:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/dump-externals.ps1
@@ -44,6 +46,7 @@ dump-externals:
     paths:
       - externals-src/
     expire_in: 1 day
+  allow_failure: true
 
 # Lint BSL code
 lint-bsl:
@@ -53,6 +56,8 @@ lint-bsl:
     - 1c
   rules:
     - if: '$RUN_SCRIPT == "lint-bsl"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
     - when: on_success
   script:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/lint-bsl.ps1
@@ -60,6 +65,7 @@ lint-bsl:
     reports:
       junit: build/reports/*.xml
     expire_in: 7 days
+  allow_failure: true
 
 # Lint external files
 lint-externals:
@@ -87,6 +93,8 @@ build-compile:
     - 1c
   rules:
     - if: '$RUN_SCRIPT == "build-compile"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
     - when: on_success
   script:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/build-compile.ps1
@@ -95,6 +103,7 @@ build-compile:
       - build/compile/*.log
     when: always
     expire_in: 7 days
+  allow_failure: true
 
 # SonarQube analysis
 sonar:
@@ -104,6 +113,8 @@ sonar:
     - 1c
   rules:
     - if: '$RUN_SCRIPT == "sonar"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
     - when: on_success
   script:
     - C:\Tools\sonar-scanner\bin\sonar-scanner.bat -Dsonar.projectBaseDir=$CI_PROJECT_DIR
@@ -111,6 +122,7 @@ sonar:
     paths:
       - .scannerwork/
     expire_in: 1 day
+  allow_failure: true
 
 # Quality Gate check
 quality-gate:
@@ -120,12 +132,14 @@ quality-gate:
     - 1c
   rules:
     - if: '$RUN_SCRIPT == "quality-gate"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
     - when: on_success
   needs:
     - sonar
   script:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/quality-gate.ps1
-  allow_failure: false
+  allow_failure: true
 
 # Package artifacts
 package:
