@@ -37,9 +37,8 @@ dump-externals:
     - 1c
   rules:
     - if: '$RUN_SCRIPT == "dump-externals"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: always
-    - when: on_success
+      when: manual
+    - when: always
   script:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/dump-externals.ps1
   artifacts:
@@ -56,9 +55,8 @@ lint-bsl:
     - 1c
   rules:
     - if: '$RUN_SCRIPT == "lint-bsl"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: always
-    - when: on_success
+      when: manual
+    - when: always
   script:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/lint-bsl.ps1
   artifacts:
