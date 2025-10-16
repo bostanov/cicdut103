@@ -38,5 +38,33 @@
     "gitlabRunner": "gitlab-runner",
     "docker": "docker",
     "git": "git"
+  },
+  "services": {
+    "sonar": {
+      "autoTrigger": true,
+      "projectKey": "ut103-ci",
+      "enabled": true,
+      "logFile": "C:\\1C-CI-CD\\logs\\sonar-analysis.log"
+    },
+    "runner": {
+      "serviceName": "GitLab-Runner-1C",
+      "configFile": "C:\\Tools\\gitlab-runner\\config.toml",
+      "enabled": true
+    },
+    "gitsync": {
+      "syncIntervalMinutes": 5,
+      "serviceName": "GitSync-1C-Service",
+      "enabled": true,
+      "logFile": "C:\\1C-CI-CD\\logs\\gitsync-service.log"
+    },
+    "precommit1c": {
+      "processedFilesDir": "C:\\1C-CI-CD\\externals\\processed",
+      "checkIntervalSeconds": 30,
+      "enabled": true,
+      "externalFilesDir": "C:\\1C-CI-CD\\externals",
+      "logFile": "C:\\1C-CI-CD\\logs\\precommit1c-service.log",
+      "serviceName": "Precommit1C-Service",
+      "sourcesDir": "C:\\1C-CI-CD\\externals\\sources"
+    }
   }
 }
