@@ -73,7 +73,7 @@ lint-externals:
     - 1c
   rules:
     - if: '$RUN_SCRIPT == "lint-externals"'
-    - when: on_success
+    - when: always
   needs:
     - dump-externals
   script:
@@ -93,7 +93,7 @@ build-compile:
     - if: '$RUN_SCRIPT == "build-compile"'
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: always
-    - when: on_success
+    - when: always
   script:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/build-compile.ps1
   artifacts:
@@ -113,7 +113,7 @@ sonar:
     - if: '$RUN_SCRIPT == "sonar"'
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: always
-    - when: on_success
+    - when: always
   script:
     - C:\Tools\sonar-scanner\bin\sonar-scanner.bat -Dsonar.projectBaseDir=$CI_PROJECT_DIR
   artifacts:
@@ -132,7 +132,7 @@ quality-gate:
     - if: '$RUN_SCRIPT == "quality-gate"'
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: always
-    - when: on_success
+    - when: always
   needs:
     - sonar
   script:
@@ -166,3 +166,4 @@ notify:
   script:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/notify-redmine.ps1
   allow_failure: true
+
