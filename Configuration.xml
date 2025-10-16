@@ -131,6 +131,7 @@
 		<ChildObjects>
 			<Language>Русский</Language>
 			<Catalog>новыйСправвочник</Catalog>
+			<Document>Документ1</Document>
 		</ChildObjects>
 	</Configuration>
 </MetaDataObject>

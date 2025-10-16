@@ -1,2 +1,4 @@
-﻿New:Catalog.новыйСправвочник
+﻿New:Document.Документ1
+New:Document.Документ1.Form.ФормаДокумента
+New:Document.Документ1.Form.ФормаДокумента.Form
 Modified:Configuration.Конфигурация
