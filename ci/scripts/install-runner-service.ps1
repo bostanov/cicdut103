@@ -36,7 +36,7 @@ switch ($Action.ToLower()) {
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "✓ GitLab Runner Service installed successfully" -ForegroundColor Green
             } else {
-                Write-Host "Failed to install GitLab Runner Service" "ERROR"
+                Write-Host "Failed to install GitLab Runner Service" -ForegroundColor Red
             }
         }
         catch {
