@@ -24,7 +24,8 @@
   "sonar": {
     "host": "http://localhost:9000",
     "projectKey": "ut103",
-    "projectName": "UT 10.3"
+    "projectName": "UT 10.3",
+    "token": "admin"
   },
   "redmine": {
     "host": "http://localhost:3000",

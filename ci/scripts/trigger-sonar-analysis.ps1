@@ -46,8 +46,8 @@ function Trigger-SonarAnalysis {
             "sonar.projectKey" = $ProjectKey
             "sonar.projectName" = "1C UT 10.3 CI/CD"
             "sonar.projectVersion" = "1.0"
-            "sonar.host.url" = $Config.sonarQube.url
-            "sonar.login" = $Config.sonarQube.token
+            "sonar.host.url" = $Config.sonar.host
+            "sonar.login" = $Config.sonar.token
             "sonar.sources" = "."
             "sonar.exclusions" = "**/node_modules/**,**/externals/**,**/logs/**,**/build/**"
             "sonar.bsl.plugin.version" = "1.0.0"
