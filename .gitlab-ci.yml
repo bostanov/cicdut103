@@ -167,3 +167,14 @@ notify:
     - powershell -ExecutionPolicy Bypass -File ci/scripts/notify-redmine.ps1
   allow_failure: true
 
+
+# Test Runner execution
+test-runner:
+  stage: test
+  tags:
+    - windows
+    - 1c
+  script:
+    - powershell -ExecutionPolicy Bypass -File ci/scripts/test-runner.ps1
+  when: always
+  allow_failure: true
