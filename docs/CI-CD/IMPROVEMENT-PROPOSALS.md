@@ -879,6 +879,23 @@ variables:
 ---
 
 **Дата:** 2025-10-14  
+**Обновлено:** 2025-10-15 (Скрипты созданы и протестированы)  
 **Автор:** CI/CD Infrastructure Analysis  
-**Статус:** Готов к внедрению
+**Статус:** Исправления применены ✅
+
+---
+
+## ✅ ОБНОВЛЕНИЕ: Созданные скрипты
+
+Все рекомендованные скрипты для исправления проблем созданы и протестированы:
+
+1. ✅ `ci/scripts/fix-path-permanent.ps1` - Добавление инструментов в PATH
+2. ✅ `ci/scripts/install-bsl-plugin.ps1` - Установка BSL плагина
+3. ✅ `ci/scripts/wait-for-services.ps1` - Ожидание готовности сервисов
+4. ✅ `ci/scripts/backup-configs.ps1` - Резервное копирование
+5. ✅ `ci/scripts/register-runner-auto.ps1` - Регистрация GitLab Runner
+6. ✅ `check-environment.ps1` - Проверка окружения (в корне проекта)
+7. ✅ `fix-path-run-as-admin.bat` - Быстрый запуск fix-path
+
+**См. подробности:** `FIXES-APPLIED.md`
 

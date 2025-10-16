@@ -25,5 +25,14 @@
   "redmine": {
     "host": "http://localhost:3000",
     "projectKey": "ut103"
+  },
+  "tools": {
+    "gitsync3": "gitsync",
+    "precommit1c": "precommit1c",
+    "oscript": "oscript",
+    "sonarScanner": "sonar-scanner",
+    "gitlabRunner": "gitlab-runner",
+    "docker": "docker",
+    "git": "git"
   }
 }
