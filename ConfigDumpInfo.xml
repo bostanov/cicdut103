@@ -6,7 +6,9 @@
 			<Metadata name="Catalog.Справочник2.Attribute.Реквизит1" id="71e8e3da-56c1-4849-9785-e321bc505dcf"/>
 			<Metadata name="Catalog.Справочник2.Attribute.Реквизит3" id="cdc65341-ba6e-4811-8eba-e243981e32c4"/>
 		</Metadata>
-		<Metadata name="Catalog.новыйСправвочник" id="01533804-18ce-400f-a99f-778686b0cbc9" configVersion="dd9ffc63a3edd14b858b939a6349d21a00000000"/>
+		<Metadata name="Catalog.новыйСправвочник" id="01533804-18ce-400f-a99f-778686b0cbc9" configVersion="9743db6fb405d047b09fb8018815143700000000"/>
+		<Metadata name="Catalog.новыйСправвочник.Form.ФормаЭлемента" id="19780658-2d8d-4872-a698-aabae2e193cf" configVersion="63fe038523c56a449f615cdd994e340c00000000"/>
+		<Metadata name="Catalog.новыйСправвочник.Form.ФормаЭлемента.Form" id="19780658-2d8d-4872-a698-aabae2e193cf.0" configVersion="b887cfed5d9f034db6d91e89f949ab4c00000000"/>
 		<Metadata name="CommonModule.ОбщийМодуль1" id="9ec7d72f-f295-40e9-8506-5bec9ea2eab1" configVersion="4d83780543732041885a7ca4e3779ec900000000"/>
 		<Metadata name="CommonModule.ОбщийМодуль1.Module" id="9ec7d72f-f295-40e9-8506-5bec9ea2eab1.0" configVersion="a1a4245731d368418c802116a9733ed200000000"/>
 		<Metadata name="CommonModule.ОбщийМодуль2" id="b9196892-b4af-4db9-a6a6-d9f95d859a74" configVersion="592e175d82a5734083c163066a92d53300000000"/>
