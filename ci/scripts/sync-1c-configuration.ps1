@@ -46,7 +46,7 @@ try {
         
         # Check if there are changes to commit
         $GitStatus = git status --porcelain
-        if ($GitStatus) {
+        if ($GitStatus -and $GitStatus.Count -gt 0) {
             Write-Log "Changes detected, committing..."
             
             # Add all changes
@@ -55,9 +55,8 @@ try {
             # Get commit message from latest storage version
             $commitMessage = "Sync: Configuration update $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
             
-            # Try to extract issue number from storage if available
-            $storageInfo = Get-Content "ConfigDumpInfo.xml" -ErrorAction SilentlyContinue
-            if ($storageInfo -match "(\d+)") {
+            # Add issue number if available in commit message
+            if ($env:CI_COMMIT_MESSAGE -and $env:CI_COMMIT_MESSAGE -match "#(\d+)") {
                 $issueNumber = $matches[1]
                 $commitMessage += " #$issueNumber"
             }
