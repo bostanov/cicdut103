@@ -131,6 +131,7 @@
 		<ChildObjects>
 			<Language>Русский</Language>
 			<Catalog>новыйСправвочник</Catalog>
+			<Catalog>Справочник2</Catalog>
 			<Document>Документ1</Document>
 		</ChildObjects>
 	</Configuration>
