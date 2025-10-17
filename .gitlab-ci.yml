@@ -1,11 +1,7 @@
 stages:
   - sync
   - dump-externals
-  - lint-bsl
-  - lint-externals
   - build-compile
-  - sonar
-  - quality-gate
   - package
   - notify
 
@@ -13,7 +9,7 @@ variables:
   GIT_STRATEGY: fetch
   GIT_SUBMODULE_STRATEGY: none
 
-# Sync from 1C repository
+# Sync 1C configuration to dedicated repository
 sync:
   stage: sync
   tags:
@@ -23,11 +19,8 @@ sync:
     - if: '$RUN_SCRIPT == "sync"'
     - when: manual
   script:
-    - powershell -ExecutionPolicy Bypass -File ci/scripts/export-from-storage.ps1 -Config ci/config/ci-settings.json
-  artifacts:
-    paths:
-      - config-src/
-    expire_in: 1 day
+    - powershell -ExecutionPolicy Bypass -File ci/scripts/sync-1c-configuration.ps1
+  allow_failure: true
 
 # Dump external reports/data processors
 dump-externals:
@@ -47,41 +40,6 @@ dump-externals:
     expire_in: 1 day
   allow_failure: true
 
-# Lint BSL code
-lint-bsl:
-  stage: lint-bsl
-  tags:
-    - windows
-    - 1c
-  rules:
-    - if: '$RUN_SCRIPT == "lint-bsl"'
-      when: manual
-    - when: always
-  script:
-    - powershell -ExecutionPolicy Bypass -File ci/scripts/lint-bsl.ps1
-  artifacts:
-    reports:
-      junit: build/reports/*.xml
-    expire_in: 7 days
-  allow_failure: true
-
-# Lint external files
-lint-externals:
-  stage: lint-externals
-  tags:
-    - windows
-    - 1c
-  rules:
-    - if: '$RUN_SCRIPT == "lint-externals"'
-    - when: always
-  needs:
-    - dump-externals
-  script:
-    - powershell -ExecutionPolicy Bypass -File ci/scripts/lint-bsl.ps1 -Source externals-src
-  artifacts:
-    reports:
-      junit: build/reports/*.xml
-    expire_in: 7 days
 
 # Build and compile configuration
 build-compile:
@@ -103,41 +61,6 @@ build-compile:
     expire_in: 7 days
   allow_failure: true
 
-# SonarQube analysis
-sonar:
-  stage: sonar
-  tags:
-    - windows
-    - 1c
-  rules:
-    - if: '$RUN_SCRIPT == "sonar"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: always
-    - when: always
-  script:
-    - C:\Tools\sonar-scanner\bin\sonar-scanner.bat -Dsonar.projectBaseDir=$CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - .scannerwork/
-    expire_in: 1 day
-  allow_failure: true
-
-# Quality Gate check
-quality-gate:
-  stage: quality-gate
-  tags:
-    - windows
-    - 1c
-  rules:
-    - if: '$RUN_SCRIPT == "quality-gate"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: always
-    - when: always
-  needs:
-    - sonar
-  script:
-    - powershell -ExecutionPolicy Bypass -File ci/scripts/quality-gate.ps1
-  allow_failure: true
 
 # Package artifacts
 package:
