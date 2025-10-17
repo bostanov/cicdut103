@@ -131,6 +131,7 @@
 		<ChildObjects>
 			<Language>Русский</Language>
 			<CommonModule>ОбщийМодуль1</CommonModule>
+			<CommonModule>ОбщийМодуль2</CommonModule>
 			<Catalog>новыйСправвочник</Catalog>
 			<Catalog>Справочник2</Catalog>
 			<Document>Документ1</Document>

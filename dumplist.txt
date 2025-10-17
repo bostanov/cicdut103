@@ -1,2 +1,3 @@
-﻿Modified:CommonModule.ОбщийМодуль1
-Modified:CommonModule.ОбщийМодуль1.Module
+﻿New:CommonModule.ОбщийМодуль2
+New:CommonModule.ОбщийМодуль2.Module
+Modified:Configuration.Конфигурация
