@@ -1,2 +1,3 @@
-﻿New:Catalog.Справочник2
+﻿New:CommonModule.ОбщийМодуль1
+New:CommonModule.ОбщийМодуль1.Module
 Modified:Configuration.Конфигурация

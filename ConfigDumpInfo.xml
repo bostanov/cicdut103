@@ -7,7 +7,9 @@
 			<Metadata name="Catalog.Справочник2.Attribute.Реквизит3" id="cdc65341-ba6e-4811-8eba-e243981e32c4"/>
 		</Metadata>
 		<Metadata name="Catalog.новыйСправвочник" id="01533804-18ce-400f-a99f-778686b0cbc9" configVersion="dd9ffc63a3edd14b858b939a6349d21a00000000"/>
-		<Metadata name="Configuration.Конфигурация" id="8194d4d1-6e39-4db0-a31f-1b1c02040aad" configVersion="d06b5a86c17a93478409fd114d7f8aac00000000"/>
+		<Metadata name="CommonModule.ОбщийМодуль1" id="9ec7d72f-f295-40e9-8506-5bec9ea2eab1" configVersion="93f09d823ec97b42b80828a829fbd23500000000"/>
+		<Metadata name="CommonModule.ОбщийМодуль1.Module" id="9ec7d72f-f295-40e9-8506-5bec9ea2eab1.0" configVersion="a42b361f8ae6c240b26041d0222bcb6300000000"/>
+		<Metadata name="Configuration.Конфигурация" id="8194d4d1-6e39-4db0-a31f-1b1c02040aad" configVersion="283eb39116c3f0409676e7ff54bc363500000000"/>
 		<Metadata name="Document.Документ1" id="20cfbb2d-bed7-47e2-9b25-80cff81fc207" configVersion="38720b3ef0f0a4458a695e2cc62ab63c00000000">
 			<Metadata name="Document.Документ1.Attribute.Реквизит1" id="5afbb015-fc1a-42ac-a5d6-8d3f357912bd"/>
 		</Metadata>

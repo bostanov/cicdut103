@@ -130,6 +130,7 @@
 		</Properties>
 		<ChildObjects>
 			<Language>Русский</Language>
+			<CommonModule>ОбщийМодуль1</CommonModule>
 			<Catalog>новыйСправвочник</Catalog>
 			<Catalog>Справочник2</Catalog>
 			<Document>Документ1</Document>
