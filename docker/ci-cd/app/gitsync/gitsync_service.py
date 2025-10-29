@@ -163,7 +163,7 @@ class GitSyncService:
         try:
             # Проверка доступности GitSync
             result = subprocess.run(['gitsync', '--version'], 
-                                  capture_output=True, text=True, timeout=30)
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
             
             if result.returncode != 0:
                 self.logger.error("GitSync not available", 
@@ -220,7 +220,7 @@ class GitSyncService:
                 try:
                     # Проверка существования remote
                     result = subprocess.run(['git', 'remote', 'get-url', 'origin'], 
-                                          capture_output=True, text=True, timeout=30)
+                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
                     
                     if result.returncode != 0:
                         # Добавление remote
@@ -252,7 +252,7 @@ class GitSyncService:
             log_operation_error("gitsync", "git_init", correlation_id, e)
             return False
     
-    def _execute_gitsync(self) -> Dict[str, Any]:
+    def _execute_gitsync(self):
         """Выполнение синхронизации GitSync"""
         correlation_id = log_operation_start("gitsync", "sync_execution")
         
@@ -271,8 +271,9 @@ class GitSyncService:
             result = subprocess.run(
                 cmd,
                 cwd=self.workspace_path,
-                capture_output=True,
-                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
                 timeout=300  # 5 минут таймаут
             )
             
@@ -317,7 +318,7 @@ class GitSyncService:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
-    def _push_to_gitlab(self) -> tuple[bool, str]:
+    def _push_to_gitlab(self):
         """Отправка изменений в GitLab"""
         if not self.gitlab_url:
             self.logger.info("GitLab URL not configured, skipping push", 
@@ -331,12 +332,12 @@ class GitSyncService:
             
             # Проверка наличия изменений для отправки
             result = subprocess.run(['git', 'status', '--porcelain'], 
-                                  capture_output=True, text=True, timeout=30)
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
             
             if not result.stdout.strip():
                 # Проверка неотправленных коммитов
                 result = subprocess.run(['git', 'log', 'origin/master..HEAD', '--oneline'], 
-                                      capture_output=True, text=True, timeout=30)
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
                 
                 if not result.stdout.strip():
                     self.logger.debug("No changes to push", 
@@ -346,7 +347,7 @@ class GitSyncService:
             
             # Получение текущего коммита
             commit_result = subprocess.run(['git', 'rev-parse', 'HEAD'], 
-                                         capture_output=True, text=True, timeout=30)
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
             commit_hash = commit_result.stdout.strip() if commit_result.returncode == 0 else ""
             
             # Отправка в GitLab
@@ -354,8 +355,9 @@ class GitSyncService:
             
             result = subprocess.run(
                 push_cmd,
-                capture_output=True,
-                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
                 timeout=120
             )
             

@@ -220,8 +220,9 @@ class PreCommit1CService:
             
             result = subprocess.run(
                 cmd,
-                capture_output=True,
-                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
                 timeout=300  # 5 минут таймаут
             )
             
@@ -263,7 +264,7 @@ class PreCommit1CService:
             
             # Проверка существования ветки
             result = subprocess.run(['git', 'branch', '--list', branch_name], 
-                                  capture_output=True, text=True, timeout=30)
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
             
             if not result.stdout.strip():
                 # Создание новой ветки
@@ -278,7 +279,7 @@ class PreCommit1CService:
             
             # Проверка наличия изменений
             result = subprocess.run(['git', 'status', '--porcelain'], 
-                                  capture_output=True, text=True, timeout=30)
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
             
             if not result.stdout.strip():
                 self.logger.info("No changes to commit", 
@@ -286,7 +287,7 @@ class PreCommit1CService:
                                correlation_id=correlation_id)
                 # Получение текущего коммита
                 result = subprocess.run(['git', 'rev-parse', 'HEAD'], 
-                                      capture_output=True, text=True, timeout=30)
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
                 return result.stdout.strip() if result.returncode == 0 else None
             
             # Создание коммита
@@ -296,7 +297,7 @@ class PreCommit1CService:
             
             # Получение хеша коммита
             result = subprocess.run(['git', 'rev-parse', 'HEAD'], 
-                                  capture_output=True, text=True, timeout=30)
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
             commit_hash = result.stdout.strip() if result.returncode == 0 else None
             
             # Отправка в remote (если настроен)

@@ -33,8 +33,9 @@ class HealthChecker:
             # Проверка процесса через supervisord
             result = subprocess.run(
                 ['supervisorctl', 'status', 'gitsync'],
-                capture_output=True,
-                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
                 timeout=10
             )
             
@@ -64,8 +65,9 @@ class HealthChecker:
             # Проверка процесса через supervisord
             result = subprocess.run(
                 ['supervisorctl', 'status', 'precommit1c'],
-                capture_output=True,
-                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
                 timeout=10
             )
             

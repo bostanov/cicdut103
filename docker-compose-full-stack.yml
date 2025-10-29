@@ -178,8 +178,8 @@ services:
       EXTERNAL_FILES_PATH: /workspace/external-files
       
       # Настройки автоинициализации
-      AUTO_INIT_SERVICES: "true"
-      WAIT_FOR_SERVICES: "true"
+      AUTO_INIT_SERVICES: "false"
+      WAIT_FOR_SERVICES: "false"
       INIT_TIMEOUT: 1800  # 30 минут
       
     volumes:
