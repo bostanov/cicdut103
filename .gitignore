@@ -9,10 +9,21 @@ build/
 !externals/*.epf
 !externals/*.erf
 
+# 1C configuration files (synced by GitSync)
+Configuration.xml
+ConfigDumpInfo.xml
+Catalogs/
+CommonModules/
+Documents/
+Languages/
+
 # Temporary files
 *.bak
 *.~*
 *~
+
+# 1C temporary files
+dumplist.txt
 
 # OS specific
 Thumbs.db

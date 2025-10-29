@@ -1,3 +1,0 @@
-﻿New:Catalog.новыйСправвочник.Form.ФормаЭлемента
-New:Catalog.новыйСправвочник.Form.ФормаЭлемента.Form
-Modified:Catalog.новыйСправвочник

@@ -1,0 +1,83 @@
+# Docker Compose только для CI/CD сервиса
+# Использует существующие контейнеры: gitlab, redmine, sonarqube, postgres_unified
+
+services:
+  # CI/CD Service - объединенный контейнер с GitSync и PreCommit1C
+  cicd-service:
+    build:
+      context: ./docker/ci-cd
+      dockerfile: Dockerfile
+    container_name: cicd-service
+    restart: unless-stopped
+    environment:
+      # PostgreSQL подключение к существующему контейнеру
+      POSTGRES_HOST: host.docker.internal
+      POSTGRES_PORT: 5433
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_admin_123
+      
+      # GitSync настройки
+      GITSYNC_STORAGE_PATH: file:///1c-storage
+      GITSYNC_STORAGE_USER: gitsync
+      GITSYNC_STORAGE_PASSWORD: "123"
+      GITSYNC_SYNC_INTERVAL: 600  # 10 минут
+      
+      # GitLab интеграция
+      GITLAB_URL: http://host.docker.internal:8929
+      GITLAB_TOKEN: ""  # Будет создан автоматически при инициализации
+      GITLAB_PROJECT_ID: ""  # Будет заполнен автоматически
+      
+      # Redmine интеграция
+      REDMINE_URL: http://host.docker.internal:3000
+      REDMINE_USERNAME: admin
+      REDMINE_PASSWORD: admin
+      REDMINE_PROJECT_ID: ut103-ci
+      CHECK_INTERVAL: 300  # 5 минут
+      
+      # SonarQube интеграция
+      SONARQUBE_URL: http://host.docker.internal:9000
+      SONARQUBE_TOKEN: ""  # Будет создан автоматически при инициализации
+      SONARQUBE_PROJECT_KEY: ut103-ci
+      
+      # Общие настройки
+      LOG_LEVEL: INFO
+      WORKSPACE_PATH: /workspace
+      EXTERNAL_FILES_PATH: /workspace/external-files
+      
+      # Настройки автоинициализации
+      AUTO_INIT_SERVICES: "true"
+      WAIT_FOR_SERVICES: "true"
+      INIT_TIMEOUT: 1800  # 30 минут
+      
+    volumes:
+      # Хранилище 1С (только чтение) - настройте путь к вашему хранилищу
+      - C:/1crepository:/1c-storage:ro
+      # Рабочая директория
+      - cicd_workspace:/workspace
+      # Логи
+      - cicd_logs:/logs
+      # Временные файлы
+      - cicd_temp:/tmp/1c
+      
+    ports:
+      - "8080:8080"  # Health check и API endpoint
+      
+    # Используем host network для доступа к существующим контейнерам
+    network_mode: "host"
+        
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s
+
+volumes:
+  # CI/CD volumes
+  cicd_workspace:
+    driver: local
+  cicd_logs:
+    driver: local
+  cicd_temp:
+    driver: local

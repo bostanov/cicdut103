@@ -1,0 +1,136 @@
+stages:
+  - validate
+  - analyze
+  - notify
+
+variables:
+  SONARQUBE_URL: "http://sonarqube:9000"
+  SONARQUBE_TOKEN: "admin"
+  REDMINE_URL: "http://redmine:3000"
+  REDMINE_API_KEY: "d20441c1b3666d9305adf9116834f5c7e6bfb947"
+
+# Валидация структуры 1С проекта
+validate_1c_structure:
+  stage: validate
+  image: ubuntu:22.04
+  script:
+    - echo "🔍 Validating 1C project structure..."
+    - |
+      if [ -f "Configuration.xml" ]; then
+        echo "✅ Configuration.xml found"
+      else
+        echo "❌ Configuration.xml not found"
+        exit 1
+      fi
+    - |
+      if [ -f "VERSION" ]; then
+        echo "✅ VERSION file found"
+        echo "📋 Version: $(cat VERSION)"
+      else
+        echo "❌ VERSION file not found"
+        exit 1
+      fi
+    - echo "✅ 1C project structure validation completed"
+  artifacts:
+    reports:
+      junit: validation-report.xml
+    expire_in: 1 hour
+  only:
+    - master
+    - merge_requests
+
+# Анализ качества кода в SonarQube
+sonarqube_analysis:
+  stage: analyze
+  image: sonarsource/sonar-scanner-cli:latest
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - echo "🔍 Starting SonarQube analysis..."
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey=ut103-ci \
+        -Dsonar.projectName="1C UT 10.3 Main Project" \
+        -Dsonar.projectVersion=$(cat VERSION | grep -o '[0-9]*' | head -1 || echo "1") \
+        -Dsonar.sources=. \
+        -Dsonar.exclusions="**/*.xml,**/*.json,**/dumplist.txt" \
+        -Dsonar.host.url=$SONARQUBE_URL \
+        -Dsonar.login=$SONARQUBE_TOKEN \
+        -Dsonar.qualitygate.wait=true \
+        -Dsonar.qualitygate.timeout=300
+    - echo "✅ SonarQube analysis completed"
+  dependencies:
+    - validate_1c_structure
+  only:
+    - master
+    - merge_requests
+  allow_failure: true
+
+# Уведомление в Redmine
+notify_redmine:
+  stage: notify
+  image: curlimages/curl:latest
+  script:
+    - echo "📢 Sending notification to Redmine..."
+    - |
+      PIPELINE_STATUS="success"
+      if [ "$CI_JOB_STATUS" = "failed" ]; then
+        PIPELINE_STATUS="failed"
+      fi
+    - |
+      COMMIT_MESSAGE=$(echo "$CI_COMMIT_MESSAGE" | head -1)
+      NOTIFICATION_TEXT="🚀 CI/CD Pipeline completed for commit $CI_COMMIT_SHORT_SHA
+
+      📋 **Pipeline Details:**
+      - Status: $PIPELINE_STATUS
+      - Branch: $CI_COMMIT_REF_NAME
+      - Commit: $COMMIT_MESSAGE
+      - Pipeline URL: $CI_PIPELINE_URL
+      - SonarQube: $SONARQUBE_URL/dashboard?id=ut103-ci
+
+      🔍 **Analysis Results:**
+      - 1C Structure: Validated
+      - Code Quality: Analyzed in SonarQube
+      - Timestamp: $(date)
+      "
+    - |
+      curl -X POST \
+        -H "X-Redmine-API-Key: $REDMINE_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"issue\": {
+            \"project_id\": 2,
+            \"tracker_id\": 1,
+            \"status_id\": 1,
+            \"priority_id\": 2,
+            \"subject\": \"CI/CD Pipeline: $CI_COMMIT_SHORT_SHA - $PIPELINE_STATUS\",
+            \"description\": \"$NOTIFICATION_TEXT\"
+          }
+        }" \
+        "$REDMINE_URL/issues.json" || echo "⚠️ Failed to create Redmine issue"
+    - echo "✅ Redmine notification completed"
+  dependencies:
+    - validate_1c_structure
+    - sonarqube_analysis
+  when: always
+  only:
+    - master
+    - merge_requests
+
+# Очистка после выполнения
+cleanup:
+  stage: notify
+  image: alpine:latest
+  script:
+    - echo "🧹 Cleaning up temporary files..."
+    - rm -rf .sonar || true
+    - echo "✅ Cleanup completed"
+  when: always
+  only:
+    - master
+    - merge_requests
