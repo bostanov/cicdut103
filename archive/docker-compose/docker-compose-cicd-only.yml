@@ -11,8 +11,8 @@ services:
     restart: unless-stopped
     environment:
       # PostgreSQL подключение к существующему контейнеру
-      POSTGRES_HOST: host.docker.internal
-      POSTGRES_PORT: 5433
+      POSTGRES_HOST: postgres_cicd
+      POSTGRES_PORT: 5432
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_admin_123
@@ -24,19 +24,19 @@ services:
       GITSYNC_SYNC_INTERVAL: 600  # 10 минут
       
       # GitLab интеграция
-      GITLAB_URL: http://host.docker.internal:8929
+      GITLAB_URL: http://localhost:8929
       GITLAB_TOKEN: ""  # Будет создан автоматически при инициализации
       GITLAB_PROJECT_ID: ""  # Будет заполнен автоматически
       
       # Redmine интеграция
-      REDMINE_URL: http://host.docker.internal:3000
+      REDMINE_URL: http://localhost:3000
       REDMINE_USERNAME: admin
       REDMINE_PASSWORD: admin
       REDMINE_PROJECT_ID: ut103-ci
       CHECK_INTERVAL: 300  # 5 минут
       
       # SonarQube интеграция
-      SONARQUBE_URL: http://host.docker.internal:9000
+      SONARQUBE_URL: http://localhost:9000
       SONARQUBE_TOKEN: ""  # Будет создан автоматически при инициализации
       SONARQUBE_PROJECT_KEY: ut103-ci
       

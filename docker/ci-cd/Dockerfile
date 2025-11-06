@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     tzdata \
     locales \
+    xvfb \
     && rm -rf /var/lib/apt/lists/*
 
 # Настройка локали
@@ -38,6 +39,21 @@ RUN apt-get update && apt-get install -y \
     libnss3 \
     libxss1 \
     libasound2 \
+    # Дополнительные зависимости для платформы 1С
+    libicu60 \
+    libglib2.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libcairo-gobject2 \
+    libgtk-3-0 \
+    libgdk-pixbuf2.0-0 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libxss1 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Установка зависимостей для OneScript
@@ -47,15 +63,28 @@ RUN apt-get update && apt-get install -y \
     ca-certificates-mono \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка платформы 1С через эмуляцию (для тестирования)
-RUN mkdir -p /opt/1C/v8.3/x86_64 && \
-    echo '#!/bin/bash' > /opt/1C/v8.3/x86_64/1cv8c && \
-    echo 'echo "1C:Enterprise 8.3.12.1714"' >> /opt/1C/v8.3/x86_64/1cv8c && \
-    chmod +x /opt/1C/v8.3/x86_64/1cv8c
+# Копирование и установка платформы 1С 8.3.12.1714
+COPY client_8_3_12_1714.deb64.tar.gz /tmp/
+RUN cd /tmp && \
+    tar -xzf client_8_3_12_1714.deb64.tar.gz && \
+    ls -la *.deb && \
+    # Попробуем установить только thin client (может не требовать сервер)
+    dpkg -i 1c-enterprise83-thin-client_8.3.12-1714_amd64.deb || true && \
+    dpkg -i 1c-enterprise83-thin-client-nls_8.3.12-1714_amd64.deb || true && \
+    # Исправление зависимостей если есть проблемы
+    apt-get update && apt-get install -f -y && \
+    # Проверка установки
+    dpkg -l | grep 1c-enterprise || echo "No 1C packages installed" && \
+    # Проверка наличия исполняемых файлов
+    find /opt -name "*1cv8*" -type f || echo "No 1C executables found" && \
+    # Очистка временных файлов
+    rm -rf /tmp/client_8_3_12_1714.deb64.tar.gz /tmp/*.deb
 
 # Проверка установки платформы 1С
 RUN find /opt -name "*1cv8*" -type f | head -5
 RUN ls -la /opt/1C/v8.3/x86_64/ || echo "1C platform directory not found"
+# Проверка версии платформы 1С
+RUN /opt/1C/v8.3/x86_64/1cv8c -version || echo "1C platform version check failed"
 
 # Установка OneScript через прямую загрузку
 RUN wget https://github.com/EvilBeaver/OneScript/releases/download/v1.9.3/onescript-engine_1.9.3_all.deb \

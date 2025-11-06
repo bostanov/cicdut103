@@ -1,6 +1,5 @@
 # Normalize line endings
 * text=auto eol=lf
-
 # 1C files are text
 *.bsl text eol=lf diff
 *.os text eol=lf diff

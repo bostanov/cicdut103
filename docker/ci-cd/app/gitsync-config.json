@@ -1,14 +1,13 @@
 {
   "storage": {
-    "path": "/1c-storage",
+    "path": "file:///1c-storage",
     "user": "gitsync",
     "password": "123"
   },
   "workdir": "/workspace",
-  "tempDir": "/tmp/1c",
   "v8": {
     "version": "8.3.12.1714",
-    "path": "/opt/1C/v8.3/x86_64/1cv8"
+    "path": "/opt/1C/v8.3/x86_64/1cv8c"
   },
   "git": {
     "user": {
@@ -47,5 +46,7 @@
     "remote": true,
     "push": true,
     "pull": false
-  }
+  },
+  "tempDir": "/tmp/1c"
 }
+

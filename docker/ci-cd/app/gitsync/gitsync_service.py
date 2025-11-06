@@ -7,7 +7,7 @@ import subprocess
 import signal
 import sys
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from pathlib import Path
 
 # Добавление пути к shared модулям
@@ -128,7 +128,7 @@ class GitSyncService:
                         "branch": "master"
                     },
                     "check-authors": {
-                        "enable": True
+                        "enable": False  # Отключен: может вызывать ошибку XML если пользователи не найдены в AUTHORS
                     },
                     "smart-tags": {
                         "enable": True,
@@ -260,6 +260,18 @@ class GitSyncService:
             # Команда GitSync с использованием переменных окружения
             cmd = ['gitsync', 'sync']
             
+            # Подготовка переменных окружения для GitSync
+            env = os.environ.copy()
+            env.update({
+                'GITSYNC_V8_PATH': '/opt/1C/v8.3/x86_64/1cv8c',
+                'GITSYNC_V8VERSION': '8.3',
+                'GITSYNC_IB_CONNECTION': self.storage_path,
+                'GITSYNC_IB_USER': self.storage_user,
+                'GITSYNC_IB_PASSWORD': self.storage_password,
+                'GITSYNC_TEMPDIR': '/tmp/1c',
+                'DISPLAY': ':99'  # Виртуальный дисплей для 1С
+            })
+            
             self.logger.info("Executing GitSync command", 
                            component="sync_execution",
                            details={"command": ' '.join(cmd)},
@@ -274,7 +286,8 @@ class GitSyncService:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
-                timeout=300  # 5 минут таймаут
+                timeout=300,  # 5 минут таймаут
+                env=env
             )
             
             duration = time.time() - start_time
@@ -318,7 +331,7 @@ class GitSyncService:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
-    def _push_to_gitlab(self):
+    def _push_to_gitlab(self) -> Tuple[bool, str]:
         """Отправка изменений в GitLab"""
         if not self.gitlab_url:
             self.logger.info("GitLab URL not configured, skipping push", 

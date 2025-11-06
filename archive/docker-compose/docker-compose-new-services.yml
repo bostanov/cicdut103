@@ -1,0 +1,170 @@
+# Docker Compose для запуска новых сервисов (GitLab, Redmine, SonarQube)
+# Использует существующий PostgreSQL контейнер postgres_unified
+
+services:
+  # GitLab CE - последняя стабильная версия
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    restart: unless-stopped
+    hostname: 'gitlab.local'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.local:8929'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+        gitlab_rails['initial_root_password'] = 'gitlab_root_password'
+        
+        # Подключение к существующему PostgreSQL
+        gitlab_rails['db_adapter'] = 'postgresql'
+        gitlab_rails['db_encoding'] = 'utf8'
+        gitlab_rails['db_host'] = 'postgres_unified'
+        gitlab_rails['db_port'] = 5432
+        gitlab_rails['db_database'] = 'gitlab'
+        gitlab_rails['db_username'] = 'postgres'
+        gitlab_rails['db_password'] = 'postgres_admin_123'
+        
+        # Отключение встроенного PostgreSQL
+        postgresql['enable'] = false
+        
+        # Оптимизация ресурсов для стабильности
+        prometheus_monitoring['enable'] = false
+        grafana['enable'] = false
+        
+        # Настройка CI/CD
+        gitlab_rails['gitlab_default_projects_features_builds'] = true
+        gitlab_rails['gitlab_default_projects_features_container_registry'] = false
+        
+        # Настройки для стабильной работы
+        gitlab_rails['gitlab_shell_git_timeout'] = 800
+        unicorn['worker_processes'] = 2
+        sidekiq['max_concurrency'] = 10
+        
+    ports:
+      - "8929:80"
+      - "8443:443" 
+      - "2224:22"
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_data:/var/opt/gitlab
+    networks:
+      - cicd-network
+    external_links:
+      - postgres_unified:postgres_unified
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/-/health || exit 1"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 600s
+    shm_size: '256m'
+
+  # Redmine - последняя стабильная версия
+  redmine:
+    image: redmine:latest
+    container_name: redmine
+    restart: unless-stopped
+    environment:
+      REDMINE_DB_POSTGRES: "postgres_unified"
+      REDMINE_DB_HOST: "postgres_unified"
+      REDMINE_DB_PORT: "5432"
+      REDMINE_DB_DATABASE: "redmine"
+      REDMINE_DB_USERNAME: "postgres"
+      REDMINE_DB_PASSWORD: "postgres_admin_123"
+      REDMINE_SECRET_KEY_BASE: "redmine_secret_key_base_12345678901234567890"
+      
+      # Настройки для интеграции
+      REDMINE_PLUGINS_MIGRATE: "true"
+      REDMINE_NO_DB_MIGRATE: "false"
+      
+      # Настройки производительности
+      RAILS_ENV: "production"
+      
+    ports:
+      - "3000:3000"
+    volumes:
+      - redmine_data:/usr/src/redmine/files
+      - redmine_logs:/usr/src/redmine/log
+      - redmine_plugins:/usr/src/redmine/plugins
+    networks:
+      - cicd-network
+    external_links:
+      - postgres_unified:postgres_unified
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+
+  # SonarQube Community - стабильная версия
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    restart: unless-stopped
+    environment:
+      # Подключение к существующему PostgreSQL
+      SONAR_JDBC_URL: jdbc:postgresql://postgres_unified:5432/sonarqube
+      SONAR_JDBC_USERNAME: postgres
+      SONAR_JDBC_PASSWORD: postgres_admin_123
+      
+      # Настройки производительности для стабильности
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+      SONAR_WEB_JAVAADDITIONALOPTS: "-Xmx1024m -Xms512m"
+      SONAR_CE_JAVAADDITIONALOPTS: "-Xmx1024m -Xms512m"
+      SONAR_SEARCH_JAVAADDITIONALOPTS: "-Xmx512m -Xms512m"
+      
+      # Настройки для интеграции
+      SONAR_FORCEAUTHENTICATION: "false"
+      SONAR_SECURITY_REALM: "sonar"
+      
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_temp:/opt/sonarqube/temp
+    networks:
+      - cicd-network
+    external_links:
+      - postgres_unified:postgres_unified
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/api/system/status || exit 1"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 300s
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+volumes:
+  gitlab_config:
+    driver: local
+  gitlab_logs:
+    driver: local
+  gitlab_data:
+    driver: local
+  redmine_data:
+    driver: local
+  redmine_logs:
+    driver: local
+  redmine_plugins:
+    driver: local
+  sonarqube_data:
+    driver: local
+  sonarqube_logs:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+  sonarqube_temp:
+    driver: local
+
+networks:
+  cicd-network:
+    external: true

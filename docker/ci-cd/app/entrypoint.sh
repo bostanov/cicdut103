@@ -89,6 +89,20 @@ cleanup() {
 
 trap cleanup SIGTERM SIGINT
 
+# Запуск виртуального дисплея для 1С
+start_xvfb() {
+    log "Starting virtual display (Xvfb)..."
+    
+    # Запуск Xvfb в фоне
+    Xvfb :99 -screen 0 1024x768x24 -ac +extension GLX +render -noreset &
+    export DISPLAY=:99
+    
+    # Ждем немного для инициализации
+    sleep 2
+    
+    log "Virtual display started on :99"
+}
+
 # Основная логика
 main() {
     log "1C CI/CD Container starting..."
@@ -97,6 +111,7 @@ main() {
     check_environment
     create_directories
     check_1c_storage
+    start_xvfb
     init_git_repo
     
     # Запуск инициализации интеграций если включена

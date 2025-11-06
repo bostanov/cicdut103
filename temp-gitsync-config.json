@@ -1,6 +1,6 @@
 {
   "storage": {
-    "path": "/1c-storage",
+    "path": "file:///1c-storage",
     "user": "gitsync",
     "password": "123"
   },
@@ -8,7 +8,7 @@
   "tempDir": "/tmp/1c",
   "v8": {
     "version": "8.3.12.1714",
-    "path": "/opt/1C/v8.3/x86_64/1cv8"
+    "path": "/opt/1C/v8.3/x86_64/1cv8c"
   },
   "git": {
     "user": {
@@ -27,12 +27,10 @@
     },
     "limit": {
       "enable": true,
-      "limit": 100
+      "limit": 5
     },
     "sync-remote": {
-      "enable": true,
-      "remote": "origin",
-      "branch": "master"
+      "enable": false
     },
     "check-authors": {
       "enable": false
@@ -44,8 +42,9 @@
     }
   },
   "sync": {
-    "remote": true,
-    "push": true,
+    "remote": false,
+    "push": false,
     "pull": false
   }
 }
+

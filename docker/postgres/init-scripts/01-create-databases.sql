@@ -1,40 +1,27 @@
--- Скрипт создания всех баз данных для CI/CD системы
+-- Скрипт инициализации баз данных для всех сервисов
 -- Выполняется при первом запуске PostgreSQL контейнера
 
--- Создание пользователей и баз данных для всех сервисов
+-- Создание базы данных для GitLab
+CREATE DATABASE gitlab;
+GRANT ALL PRIVILEGES ON DATABASE gitlab TO postgres;
 
--- GitLab database
-CREATE USER gitlab WITH PASSWORD 'gitlab_password';
-CREATE DATABASE gitlab OWNER gitlab;
-GRANT ALL PRIVILEGES ON DATABASE gitlab TO gitlab;
+-- Создание базы данных для Redmine  
+CREATE DATABASE redmine;
+GRANT ALL PRIVILEGES ON DATABASE redmine TO postgres;
 
--- Redmine database  
-CREATE USER redmine WITH PASSWORD 'redmine_password';
-CREATE DATABASE redmine OWNER redmine;
-GRANT ALL PRIVILEGES ON DATABASE redmine TO redmine;
+-- Создание базы данных для SonarQube
+CREATE DATABASE sonarqube;
+GRANT ALL PRIVILEGES ON DATABASE sonarqube TO postgres;
 
--- SonarQube database
-CREATE USER sonarqube WITH PASSWORD 'sonarqube_password';
-CREATE DATABASE sonarqube OWNER sonarqube;
-GRANT ALL PRIVILEGES ON DATABASE sonarqube TO sonarqube;
+-- Создание базы данных для CI/CD метаданных
+CREATE DATABASE cicd;
+GRANT ALL PRIVILEGES ON DATABASE cicd TO postgres;
 
--- CI/CD metadata database
-CREATE USER cicd WITH PASSWORD 'cicd_password';
-CREATE DATABASE cicd OWNER cicd;
-GRANT ALL PRIVILEGES ON DATABASE cicd TO cicd;
+-- Настройка кодировки для корректной работы с русским языком
+ALTER DATABASE gitlab SET client_encoding TO 'utf8';
+ALTER DATABASE redmine SET client_encoding TO 'utf8';
+ALTER DATABASE sonarqube SET client_encoding TO 'utf8';
+ALTER DATABASE cicd SET client_encoding TO 'utf8';
 
--- Настройка кодировки и локали для всех баз данных
-ALTER DATABASE gitlab SET timezone TO 'UTC';
-ALTER DATABASE redmine SET timezone TO 'UTC';
-ALTER DATABASE sonarqube SET timezone TO 'UTC';
-ALTER DATABASE cicd SET timezone TO 'UTC';
-
--- Логирование создания баз данных
-DO $$
-BEGIN
-    RAISE NOTICE 'All databases created successfully:';
-    RAISE NOTICE '- GitLab database: gitlab (user: gitlab)';
-    RAISE NOTICE '- Redmine database: redmine (user: redmine)';
-    RAISE NOTICE '- SonarQube database: sonarqube (user: sonarqube)';
-    RAISE NOTICE '- CI/CD database: cicd (user: cicd)';
-END $$;
+-- Логирование успешного создания
+\echo 'Databases created successfully: gitlab, redmine, sonarqube, cicd'

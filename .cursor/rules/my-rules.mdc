@@ -1,0 +1,252 @@
+# Cursor Rules for 1C DevOps CI/CD - PROJECT LEVEL
+
+---
+description: "CI/CD конвейер для 1С:Enterprise 8.3.12 с обычными формами"
+alwaysApply: true
+version: 1.0
+---
+
+## Архитектура проекта
+
+```
+project-root/
+├── src/                          # Исходники, разобранные precommit1c
+│   ├── modules/                  # 1С модули (объекты, менеджеры, обработчики)
+│   ├── forms/                    # Исходники форм (XML структура)
+│   ├── reports/                  # Отчеты (разобранные .erf)
+│   └── external_processing/      # Внешние обработки (разобранные .epf)
+├── tests/
+│   ├── unit/                     # Unit-тесты на Python/OneScript
+│   ├── functional/               # Функциональные тесты логики бизнеса
+│   ├── integration/              # Интеграционные тесты сервисов
+│   └── conftest.py               # Pytest конфигурация
+├── scripts/
+│   ├── ci_integration.py         # Главный скрипт интеграции
+│   ├── gitsync_wrapper.os        # Обертка для gitsync3
+│   ├── deploy_config.py          # Развертывание конфигурации
+│   └── utilities/
+├── .gitlab-ci.yml                # GitLab CI/CD конфигурация
+├── .gitignore                    # Исключить: .epf, .erf, бинарные файлы
+├── sonar-project.properties      # SonarQube конфигурация
+├── docker-compose.yml            # Сервисы (SonarQube, Redmine, GitLab Runner)
+├── Dockerfile.ci                 # CI/CD окружение (Python, OneScript)
+├── .pre-commit-config.yaml       # Pre-commit hooks
+└── README.md                     # Документация проекта
+```
+
+## CI/CD Pipeline - основные этапы
+
+### Stage 1: Validation (1-2 минуты)
+- **trigger**: push в любую ветвь, merge request
+- **actions**:
+  - Проверка синтаксиса Python скриптов (flake8, black)
+  - Валидация структуры разобранных исходников (precommit1c output)
+  - Lint 1C кода (если есть линтер)
+
+### Stage 2: SonarQube Analysis (3-5 минут)
+- **trigger**: после успешной валидации
+- **actions**:
+  - Запуск sonar-scanner для анализа кода модулей
+  - Проверка порогов качества (дублирование, complexity)
+  - Генерация отчета
+  - **FAIL** если превышены пороги
+
+### Stage 3: Functional Tests (4-7 минут)
+- **trigger**: параллельно с SonarQube
+- **actions**:
+  - Unit-тесты бизнес-логики (модули объектов)
+  - Функциональные тесты через OneScript/Python
+  - **Не тестировать** UI обычных форм
+  - Генерация отчета покрытия
+  - **FAIL** если покрытие < 70% для критичного кода
+
+### Stage 4: Integration Tests (2-4 минуты)
+- **trigger**: если tests пройдены
+- **actions**:
+  - Проверка синхронизации с Redmine
+  - Проверка доступности сервисов (SonarQube, GitLab API, 1C Server)
+  - Валидация конфигураций подключения
+
+### Stage 5: Deploy to Staging (при merge в develop)
+- **trigger**: merge в develop ветвь
+- **actions**:
+  - Сборка конфигурации из разобранных исходников
+  - Развертывание на staging-сервер 1С
+  - Smoke-тесты на staging
+
+## Ветвление (Git Flow)
+
+```
+main              # Production. Tag на каждый release. Защищена от прямых push'ей.
+ ├── develop      # Staging. Merge только через MR с approval
+ │    ├── feature/YYMMDD_task-name
+ │    ├── bugfix/YYMMDD_issue-number
+ │    └── hotfix/YYMMDD_production-fix
+```
+
+### Правила именования
+
+| Тип | Шаблон | Пример |
+|-----|--------|--------|
+| Feature | `feature/YYMMDD_short-name` | `feature/251105_add-discount-calc` |
+| Bug Fix | `bugfix/YYMMDD_issue-id` | `bugfix/251105_fix-inventory-sync` |
+| Hotfix | `hotfix/YYMMDD_prod-issue` | `hotfix/251105_critical-payment` |
+| Release | `release/X.Y.Z` | `release/2.1.0` |
+
+### Коммиты
+
+```
+[JIRA-123] Добавлен расчет скидок в модуль документа
+[REDMINE-45] Исправлена ошибка синхронизации с Redmine
+[INTERNAL] Обновлены зависимости Python
+```
+
+## Сервисы и их роли
+
+### SonarQube
+- **Endpoint**: http://sonarqube.local:9000
+- **Анализ**: только серверная часть кода (модули), НЕ формы
+- **Пороги качества**:
+  - Coverage: >= 70% для критичного кода
+  - Duplication: <= 5%
+  - Complexity: циклическая сложность <= 15
+
+### Redmine
+- **Endpoint**: http://redmine.local
+- **Интеграция**: webhooks GitLab → создание issues
+- **Статусы**: New → In Progress → Review → Closed
+- **Связь коммитов**: упоминание REDMINE-XXX или JIRA-XXX
+
+### GitLab
+- **Repository**: хранилище исходников
+- **CI/CD Runners**: теги для разделения job'ов
+  - `1c-tests` - для функциональных тестов 1С
+  - `sonar` - для анализа кода
+  - `docker` - для сборки контейнеров
+- **Protected branches**: main, develop требуют approval
+- **Deploy keys**: для доступа к хранилищу в CI/CD
+
+### gitsync3 + precommit1c
+- **Rolle**: локальная подготовка исходников перед commit
+- **Trigger**: pre-commit hook Git
+- **Output**: src/ директория с разобранными файлами
+- **Validation**: проверка целостности структуры
+
+### 1C:Enterprise 8.3.12
+- **Версия**: строго 8.3.12
+- **Режим запуска**: толстый клиент для локального тестирования
+- **Хранилище**: подключение через gitsync3
+- **Тестирование**: через консольные скрипты (не UI)
+
+## Обработка ошибок и алерты
+
+### Critical (останавливают пайплайн)
+- SonarQube пороги качества превышены
+- Unit-тесты упали (failure)
+- Ошибка синхронизации с Redmine (connection error)
+
+### Warning (логируются, но не блокируют)
+- Низкое покрытие (50-70%)
+- Медленные тесты (>30 сек)
+- Deprecation warnings в коде
+
+### Notifications
+- **Slack** (если настроен): уведомление на канал #devops при FAIL
+- **Redmine**: автоматическое создание issue при критичной ошибке
+- **Email**: daily report для тиммаледа
+
+## Безопасность
+
+### Credentials Management
+```yaml
+# GitLab CI/CD Variables (encrypted)
+1C_REPO_URL: <ssh://git@gitlab.local/.../1c.git>
+1C_SERVER_ADDR: <192.168.x.x:1541>
+1C_ADMIN_USER: <user>
+1C_ADMIN_PASS: <encrypted>
+SONAR_HOST_URL: <http://sonarqube.local:9000>
+SONAR_LOGIN: <token>
+REDMINE_API_KEY: <api_key>
+```
+
+### Access Control
+- **Deploy keys**: separate key для каждого CI Runner
+- **1C Roles**: минимум разрешений (read-only где возможно)
+- **SonarQube**: read-only аккаунт для CI/CD
+- **Redmine**: аккаунт с разрешением только на создание issues
+
+## Dependency Management
+
+### Python
+- `requirements.txt` с pinned версиями
+- Pip install только из trusted sources
+- Регулярные обновления security patches
+
+### OneScript
+- opm.json с версиями пакетов
+- Основные пакеты:
+  - gitsync 3.x
+  - v8files-extractor
+
+### Docker
+- Базовые образы: python:3.11-slim, sonarqube:lts
+- Multi-stage builds для оптимизации размера
+- Регулярные обновления безопасности
+
+## Performance Targets
+
+| Этап | Время | Примечание |
+|------|-------|-----------|
+| Validation | 1-2 мин | Синтаксис, линт |
+| SonarQube | 3-5 мин | Зависит от объема кода |
+| Tests | 4-7 мин | Параллельно с SonarQube |
+| Integration | 2-4 мин | Проверка сервисов |
+| **Итого** | **10-15 мин** | Максимум для MR |
+
+## Логирование и Мониторинг
+
+### Log Levels
+- **DEBUG**: детальная информация для диагностики
+- **INFO**: основные события (start, finish, success)
+- **WARNING**: потенциальные проблемы
+- **ERROR**: ошибки, которые нужно исправить
+- **CRITICAL**: критичные сбои, останавливают пайплайн
+
+### Log Retention
+- GitLab CI logs: 30 дней
+- Redmine audit logs: 90 дней
+- Docker logs: 7 дней
+
+## Rollback Strategy
+
+### При критичном бага на production
+1. Revert коммита в main ветвь
+2. Создать hotfix branch от main
+3. Применить исправления
+4. Запустить full test cycle
+5. Merge в main с тегом (X.Y.Z-hotfix.N)
+6. Deploy на production
+
+### При проблеме на staging
+- Rollback автоматичен: возврат к последней stable версии develop
+- Анализ логов Redmine/GitLab для диагностики
+
+## Best Practices
+
+### Code Review
+- Минимум 1 approval перед merge (senior developer)
+- Обязательная проверка:
+  - Соответствие стандартам кодирования
+  - Наличие unit-тестов
+  - SonarQube issues resolved
+  - Документация обновлена
+
+### Documentation
+- Каждая фича документируется в README
+- API интеграции в WIKI Redmine
+- Скрипты имеют docstring с примерами
+
+### Testing Strategy
+- TDD approach: тесты пишутся перед кодом
+- Mock 1C API где необходимо (для unit-тестов)
+- Functional tests на реальных данных в staging

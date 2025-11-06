@@ -6,7 +6,7 @@ import time
 import os
 from contextlib import contextmanager
 from typing import Generator
-from .logger import get_logger
+from shared.logger import get_logger
 
 
 class GitLockCoordinator:

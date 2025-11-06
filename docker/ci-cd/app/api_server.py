@@ -16,22 +16,48 @@ from integrations import get_postgres_client
 app = Flask(__name__)
 logger = get_logger("api_server")
 
-# Инициализация клиентов
-coordinator = get_pipeline_coordinator()
-postgres_client = get_postgres_client()
+# Инициализация клиентов (отложенная)
+coordinator = None
+postgres_client = None
+
+def get_clients():
+    """Получение клиентов с отложенной инициализацией"""
+    global coordinator, postgres_client
+    if coordinator is None:
+        try:
+            coordinator = get_pipeline_coordinator()
+        except Exception as e:
+            logger.warning(f"Failed to initialize pipeline coordinator: {e}")
+    
+    if postgres_client is None:
+        try:
+            postgres_client = get_postgres_client()
+        except Exception as e:
+            logger.warning(f"Failed to initialize postgres client: {e}")
+    
+    return coordinator, postgres_client
 
 
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     try:
-        # Проверка подключения к базе данных
-        postgres_client.execute_query("SELECT 1", fetch=True)
+        coordinator, postgres_client = get_clients()
+        
+        # Проверка подключения к базе данных (если доступна)
+        db_status = "unknown"
+        if postgres_client:
+            try:
+                postgres_client.execute_query("SELECT 1", fetch=True)
+                db_status = "healthy"
+            except Exception as e:
+                db_status = f"error: {str(e)}"
         
         return jsonify({
             "status": "healthy",
             "timestamp": datetime.utcnow().isoformat() + "Z",
-            "service": "ci-cd-api"
+            "service": "ci-cd-api",
+            "database": db_status
         })
     except Exception as e:
         return jsonify({
@@ -105,11 +131,15 @@ def system_status():
         
         # Проверка PostgreSQL
         try:
-            result = postgres_client.execute_query("SELECT COUNT(*) as count FROM integration_config", fetch=True)
-            status["services"]["postgresql"] = {
-                "status": "healthy",
-                "config_entries": result[0]['count'] if result else 0
-            }
+            coordinator, postgres_client = get_clients()
+            if postgres_client:
+                result = postgres_client.execute_query("SELECT COUNT(*) as count FROM integration_config", fetch=True)
+                status["services"]["postgresql"] = {
+                    "status": "healthy",
+                    "config_entries": result[0]['count'] if result else 0
+                }
+            else:
+                status["services"]["postgresql"] = {"status": "not_initialized"}
         except Exception as e:
             status["services"]["postgresql"] = {"status": "error", "error": str(e)}
         
@@ -177,8 +207,12 @@ def dashboard():
         
         # PostgreSQL
         try:
-            postgres_client.execute_query("SELECT 1", fetch=True)
-            services_status["postgresql"] = "✅ Healthy"
+            coordinator, postgres_client = get_clients()
+            if postgres_client:
+                postgres_client.execute_query("SELECT 1", fetch=True)
+                services_status["postgresql"] = "✅ Healthy"
+            else:
+                services_status["postgresql"] = "⏳ Initializing"
         except:
             services_status["postgresql"] = "❌ Error"
         
@@ -305,4 +339,4 @@ def dashboard():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    app.run(host='0.0.0.0', port=8090, debug=False)
