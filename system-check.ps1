@@ -152,10 +152,10 @@ try {
     # Проверка контейнеров
     $containers = @(
         "postgres_cicd",
-        "gitlab-cicd",
-        "redmine-cicd",
-        "sonarqube-cicd",
-        "cicd-coordinator"
+        "gitlab",
+        "redmine",
+        "sonarqube",
+        "cicd-service-final"
     )
     
     foreach ($containerName in $containers) {

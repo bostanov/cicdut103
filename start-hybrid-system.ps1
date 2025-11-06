@@ -39,22 +39,23 @@ if ($oldContainer) {
     Write-Host "Старый контейнер не найден (это нормально)" -ForegroundColor Gray
 }
 
-# 4. Запуск гибридной системы
-Write-Host "`n4. Запуск гибридной системы..." -ForegroundColor Cyan
-Write-Host "Используется файл: docker-compose-hybrid.yml" -ForegroundColor Gray
+# 4. Проверка контейнеров
+Write-Host "`n4. Проверка контейнеров (используется docker-compose-full-stack.yml)..." -ForegroundColor Cyan
 
-try {
-    docker-compose -f docker-compose-hybrid.yml up -d
-    Write-Host "✅ Контейнеры запущены" -ForegroundColor Green
-} catch {
-    Write-Host "❌ Ошибка запуска: $_" -ForegroundColor Red
-    exit 1
+$runningContainers = docker ps --format "{{.Names}}"
+$expectedContainers = @("gitlab", "redmine", "sonarqube", "cicd-service-final", "postgres_cicd")
+
+foreach ($container in $expectedContainers) {
+    if ($runningContainers -contains $container) {
+        Write-Host "  ✅ $container работает" -ForegroundColor Green
+    } else {
+        Write-Host "  ⚠️  $container не запущен" -ForegroundColor Yellow
+    }
 }
 
-# 5. Проверка контейнеров
-Write-Host "`n5. Проверка запущенных контейнеров..." -ForegroundColor Cyan
-Start-Sleep -Seconds 5
-docker ps --filter "network=postgres_network" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+# 5. Статус контейнеров
+Write-Host "`n5. Статус контейнеров..." -ForegroundColor Cyan
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | Select-Object -First 10
 
 # 6. Статус GitSync на хосте
 Write-Host "`n6. Статус GitSync (хост-машина)..." -ForegroundColor Cyan

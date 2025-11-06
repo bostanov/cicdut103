@@ -6,7 +6,7 @@ services:
   # GitLab - Git репозиторий и CI/CD пайплайны
   gitlab:
     image: gitlab/gitlab-ce:16.11.10-ce.0
-    container_name: gitlab-cicd
+    container_name: gitlab
     restart: unless-stopped
     hostname: 'gitlab.local'
     environment:
@@ -57,7 +57,7 @@ services:
   # Redmine - управление задачами и внешними файлами
   redmine:
     image: redmine:latest
-    container_name: redmine-cicd
+    container_name: redmine
     restart: unless-stopped
     environment:
       REDMINE_DB_POSTGRES: "postgres_cicd"
@@ -89,7 +89,7 @@ services:
   # SonarQube - анализ качества кода
   sonarqube:
     image: sonarqube:community
-    container_name: sonarqube-cicd
+    container_name: sonarqube
     restart: unless-stopped
     environment:
       # Подключение к внешнему PostgreSQL
@@ -134,6 +134,7 @@ services:
       context: ./docker/ci-cd-coordinator
       dockerfile: Dockerfile
     container_name: cicd-coordinator
+    # Примечание: старый контейнер cicd-service-final все еще работает
     restart: unless-stopped
     environment:
       # PostgreSQL подключение к существующему контейнеру
