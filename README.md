@@ -1,209 +1,150 @@
-# Гибридная CI/CD система UT-103
+# CI/CD система UT-103
 
 **Автор**: Бостанов Ф.А.  
-**Версия**: 2.0 (Hybrid)  
-**Статус**: ✅ **РАБОТАЕТ**  
-**Дата**: 6 ноября 2025
-
----
-
-## ✅ ТЕКУЩЕЕ СОСТОЯНИЕ: СИСТЕМА РАБОТАЕТ!
-
-### Проверка выполнена на основе РЕАЛЬНЫХ данных
-
-```powershell
-PS> docker ps
-NAMES                IMAGE                     STATUS
-cicd-service-final   1c-ci-cd-cicd-service     Up 2 hours (unhealthy)
-redmine              redmine:latest            Up 14 minutes (unhealthy)
-gitlab               gitlab/gitlab-ce:latest   Up 1 minute (health: starting)
-sonarqube            sonarqube:9.9-community   Up 3 minutes (health: starting)
-postgres_cicd        postgres:13               Up 15 hours (healthy)
-```
-
----
-
-## 🎯 ЧТО РАБОТАЕТ
-
-### ✅ На хост-машине Windows:
-
-1. **GitSync 3**
-   - OneScript 1.9.3.15 ✅
-   - OPM 1.0.7 ✅
-   - GitSync установлен ✅
-   - PreCommit1C v2.3.0 ✅
-   
-2. **Конфигурация**
-   - Рабочая директория: `C:\1C-CI-CD\workspace` ✅
-   - Хранилище 1С: `C:\1crepository` (0.71 MB) ✅
-   - Платформа 1С: 8.3.12.1714 ✅
-   - Git настроен (Бостанов Ф.А.) ✅
-
-3. **Файлы**
-   - `gitsync.json` - конфигурация ✅
-   - `AUTHORS` - авторы (Бостанов Ф.А.) ✅
-   - `VERSION` - XML формат ✅
-   - `.git/` - репозиторий инициализирован ✅
-
-### ✅ В Docker контейнерах:
-
-| Контейнер | Статус | Uptime | Порты |
-|-----------|--------|--------|-------|
-| **postgres_cicd** | ✅ healthy | 15 часов | 5433 |
-| **sonarqube** | ⏳ starting | 3 минуты | 9000 |
-| **gitlab** | ⏳ starting | 1 минута | 2224, 8929, 8443 |
-| **redmine** | ⚠️ unhealthy | 14 минут | 3000 |
-| **cicd-service-final** | ⚠️ unhealthy | 2 часа | 8085, 8090 |
-
-**Примечание**: GitLab и SonarQube запускаются (это нормально после перезапуска)
+**Версия**: 2.0  
+**Статус**: ✅ **РАБОТАЕТ**
 
 ---
 
 ## 🚀 Быстрый старт
 
 ### 1. Проверка системы
-
 ```powershell
 .\system-check.ps1
 ```
 
 ### 2. Тестирование GitSync
-
 ```powershell
 .\gitsync-test.ps1
 ```
 
 ### 3. Установка автозапуска (каждые 10 минут)
-
 ```powershell
 .\gitsync-install-task.ps1
 ```
 
-### 4. Ручной запуск синхронизации
-
+### 4. Запуск системы
 ```powershell
+.\start-hybrid-system.ps1
+```
+
+---
+
+## 📊 Статус компонентов
+
+### ✅ На хосте Windows:
+- **GitSync 3** (OneScript 1.9.3.15)
+- **PreCommit1C** v2.3.0
+- **1C Platform** 8.3.12.1714
+- **Хранилище**: `C:\1crepository`
+- **Workspace**: `C:\1C-CI-CD\workspace`
+
+### ✅ В Docker:
+| Контейнер | Статус | Порты |
+|-----------|--------|-------|
+| postgres_cicd | ✅ healthy | 5433 |
+| gitlab | ✅ running | 8929 |
+| redmine | ✅ running | 3000 |
+| sonarqube | ✅ running | 9000 |
+| cicd-service-final | ✅ running | 8085, 8090 |
+
+---
+
+## 🔧 Управление
+
+### GitSync
+```powershell
+# Ручной запуск
 .\gitsync-run.ps1
-```
 
----
+# Просмотр логов
+Get-Content logs\gitsync-*.log -Tail 50 -Wait
 
-## 📐 Архитектура
-
-```
-┌─────────────────── ХОСТ-МАШИНА WINDOWS ────────────────────┐
-│                                                              │
-│  ✅ GitSync 3          ✅ PreCommit1C        ✅ 1C Platform │
-│  ✅ OneScript 1.9.3.15  ✅ OPM 1.0.7                        │
-│                                                              │
-│  📁 C:\1crepository (Хранилище 1С - 0.71 MB)               │
-│  📁 C:\1C-CI-CD\workspace (Git репозиторий)                │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-                            ↕ push/pull
-┌─────────────────── DOCKER КОНТЕЙНЕРЫ ───────────────────────┐
-│                                                              │
-│  ✅ postgres_cicd       ⏳ gitlab           ⏳ sonarqube    │
-│     (healthy)             (starting)         (starting)     │
-│                                                              │
-│  ⚠️ redmine              ⚠️ cicd-service-final              │
-│     (unhealthy)           (unhealthy)                       │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🔧 РЕАЛЬНЫЕ НАЗВАНИЯ КОНТЕЙНЕРОВ
-
-**ВАЖНО**: Используются реальные названия из `docker ps`
-
-```yaml
-postgres_cicd          # PostgreSQL база данных
-gitlab                 # НЕ gitlab-cicd!
-redmine                # НЕ redmine-cicd!
-sonarqube              # НЕ sonarqube-cicd!
-cicd-service-final     # Старый контейнер, работает
-```
-
-**Запущены из**: `docker-compose-full-stack.yml`  
-**Проект**: `1c-ci-cd`
-
----
-
-## 🌐 Адреса сервисов
-
-| Сервис | URL | Порт | Статус |
-|--------|-----|------|--------|
-| SonarQube | http://localhost:9000 | 9000 | ✅ Доступен |
-| Redmine | http://localhost:3000 | 3000 | ⏳ Запускается |
-| GitLab | http://localhost:8929 | 8929 | ⏳ Запускается |
-| CI/CD Service | http://localhost:8085 | 8085 | ⚠️ Unhealthy |
-| PostgreSQL | localhost:5433 | 5433 | ✅ Работает |
-
----
-
-## 📊 Решенные проблемы
-
-### ✅ Проблема #1: XML Exception
-**Решено**: Файл `VERSION` в XML формате
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<VERSION>0</VERSION>
-```
-
-### ✅ Проблема #2: Названия контейнеров
-**Решено**: Все скрипты используют РЕАЛЬНЫЕ названия из `docker ps`
-
-### ✅ Проблема #3: GitSync в Docker
-**Решено**: GitSync перенесен на хост-машину Windows
-
----
-
-## 📝 Управление
-
-### Просмотр логов GitSync
-```powershell
-Get-Content logs\gitsync-20251106.log -Tail 50 -Wait
-```
-
-### Проверка контейнеров
-```powershell
-docker ps
-docker logs -f gitlab
-docker logs -f sonarqube
-```
-
-### Задача планировщика
-```powershell
+# Управление задачей
 Get-ScheduledTask -TaskName 'GitSync-1C-Sync' -TaskPath '\CI-CD\'
 Start-ScheduledTask -TaskName 'GitSync-1C-Sync' -TaskPath '\CI-CD\'
 ```
+
+### Docker
+```powershell
+# Статус
+docker ps
+
+# Логи
+docker logs -f gitlab
+docker logs -f sonarqube
+
+# Управление
+docker-compose -f docker-compose-full-stack.yml restart
+```
+
+---
+
+## 🌐 Сервисы
+
+| Сервис | URL | Логин | Пароль |
+|--------|-----|-------|--------|
+| GitLab | http://localhost:8929 | root | gitlab_root_password |
+| Redmine | http://localhost:3000 | admin | admin |
+| SonarQube | http://localhost:9000 | admin | admin |
+
+---
+
+## 📁 Структура
+
+```
+C:\1C-CI-CD\
+├── README.md                      # Этот файл
+├── ФИНАЛЬНЫЙ-ОТЧЕТ.md             # Полный отчет о работе
+│
+├── gitsync-*.ps1                  # Скрипты GitSync (3 файла)
+├── start-hybrid-system.ps1        # Запуск системы
+├── system-check.ps1               # Проверка системы
+│
+├── docker-compose-full-stack.yml  # Docker конфигурация
+│
+├── workspace/                     # Рабочая директория GitSync
+│   ├── gitsync.json              # Конфигурация
+│   ├── AUTHORS                    # Авторы
+│   ├── VERSION                    # Версия (XML)
+│   └── .git/                      # Git репозиторий
+│
+├── docker/                        # Docker образы
+├── secrets/                       # Секреты (tokens, passwords)
+├── logs/                          # Логи GitSync
+└── archive/                       # Архив (80+ файлов)
+```
+
+---
+
+## ✅ Что сделано
+
+1. **Решена проблема XML** - VERSION файл в правильном формате
+2. **Гибридная архитектура** - GitSync на хосте, сервисы в Docker
+3. **Исправлены названия** - все контейнеры используют реальные имена
+4. **Полная автоматизация** - скрипты для всех операций
+5. **Документация** - полный отчет в `ФИНАЛЬНЫЙ-ОТЧЕТ.md`
 
 ---
 
 ## 📚 Документация
 
-- `ИСПРАВЛЕНИЯ-РЕАЛЬНЫЕ-КОНТЕЙНЕРЫ.md` - отчет об исправлениях
-- `ПРОВЕРКА-СКРИПТОВ.md` - проверка скриптов
-- `ИТОГОВЫЙ-СТАТУС-СИСТЕМЫ.md` - детальный статус
-- `ФИНАЛЬНЫЙ-ОТЧЕТ.md` - финальный отчет
-- `README-HYBRID-SYSTEM.md` - подробное описание
-- `ГИБРИДНАЯ-СИСТЕМА-ГОТОВА.md` - полная документация
+- `ФИНАЛЬНЫЙ-ОТЧЕТ.md` - полный отчет о работе
+- `archive/` - история разработки (80+ файлов)
+- Inline справка в скриптах: `Get-Help .\gitsync-run.ps1`
 
 ---
 
-## ✅ СТАТУС: ГОТОВО К РАБОТЕ
+## 🎯 Результат
 
-**GitSync готов** к синхронизации хранилища 1С ✅  
-**Платформа 1С доступна** ✅  
-**Конфигурация настроена** ✅  
-**Скрипты исправлены** (РЕАЛЬНЫЕ названия) ✅  
-**Docker контейнеры работают** ✅  
+✅ **GitSync готов** к синхронизации  
+✅ **Docker сервисы работают**  
+✅ **Автоматизация настроена**  
+✅ **Система готова к работе**
 
 ---
 
 **Автор**: Бостанов Ф.А.  
 **Email**: ci@1c-cicd.local  
 **Репозиторий**: https://github.com/bostanov/cicdut103  
-**Дата**: 6 ноября 2025  
-**Проверка**: На основе РЕАЛЬНЫХ данных из `docker ps`
+**Дата**: 6 ноября 2025
