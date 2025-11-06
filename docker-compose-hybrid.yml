@@ -1,0 +1,235 @@
+# Docker Compose для гибридной CI/CD системы
+# GitSync и PreCommit1C работают на хост-машине Windows
+# GitLab, Redmine, SonarQube, PostgreSQL в Docker
+
+services:
+  # GitLab - Git репозиторий и CI/CD пайплайны
+  gitlab:
+    image: gitlab/gitlab-ce:16.11.10-ce.0
+    container_name: gitlab-cicd
+    restart: unless-stopped
+    hostname: 'gitlab.local'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.local'
+        gitlab_rails['gitlab_shell_ssh_port'] = 8022
+        gitlab_rails['initial_root_password'] = 'gitlab_root_password'
+        
+        # Подключение к внешнему PostgreSQL
+        gitlab_rails['db_adapter'] = 'postgresql'
+        gitlab_rails['db_encoding'] = 'utf8'
+        gitlab_rails['db_host'] = 'postgres_cicd'
+        gitlab_rails['db_port'] = 5432
+        gitlab_rails['db_database'] = 'gitlab'
+        gitlab_rails['db_username'] = 'gitlab'
+        gitlab_rails['db_password'] = 'gitlab_password_123'
+        
+        # Отключение встроенного PostgreSQL
+        postgresql['enable'] = false
+        
+        # Оптимизация ресурсов
+        prometheus_monitoring['enable'] = false
+        
+        # Настройка CI/CD
+        gitlab_rails['gitlab_default_projects_features_builds'] = true
+        gitlab_rails['gitlab_default_projects_features_container_registry'] = false
+        
+        # Настройка автоматической регистрации runner'ов
+        gitlab_rails['gitlab_shell_git_timeout'] = 800
+    ports:
+      - "8929:80"
+      - "8443:443" 
+      - "8022:22"
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_data:/var/opt/gitlab
+    networks:
+      - cicd-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/-/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+    shm_size: '256m'
+
+  # Redmine - управление задачами и внешними файлами
+  redmine:
+    image: redmine:latest
+    container_name: redmine-cicd
+    restart: unless-stopped
+    environment:
+      REDMINE_DB_POSTGRES: "postgres_cicd"
+      REDMINE_DB_HOST: "postgres_cicd"
+      REDMINE_DB_PORT: "5432"
+      REDMINE_DB_DATABASE: "redmine"
+      REDMINE_DB_USERNAME: "redmine"
+      REDMINE_DB_PASSWORD: "redmine_password_123"
+      REDMINE_SECRET_KEY_BASE: "redmine_secret_key_base_12345678901234567890"
+      
+      # Настройки для интеграции
+      REDMINE_PLUGINS_MIGRATE: "true"
+      REDMINE_NO_DB_MIGRATE: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - redmine_data:/usr/src/redmine/files
+      - redmine_logs:/usr/src/redmine/log
+      - redmine_plugins:/usr/src/redmine/plugins
+    networks:
+      - cicd-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 120s
+
+  # SonarQube - анализ качества кода
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube-cicd
+    restart: unless-stopped
+    environment:
+      # Подключение к внешнему PostgreSQL
+      SONAR_JDBC_URL: jdbc:postgresql://postgres_cicd:5432/sonarqube
+      SONAR_JDBC_USERNAME: sonarqube
+      SONAR_JDBC_PASSWORD: sonarqube_password_123
+      
+      # Настройки производительности
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+      SONAR_WEB_JAVAADDITIONALOPTS: "-Xmx1024m -Xms256m"
+      SONAR_CE_JAVAADDITIONALOPTS: "-Xmx1024m -Xms256m"
+      
+      # Настройки для интеграции
+      SONAR_FORCEAUTHENTICATION: "false"
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_temp:/opt/sonarqube/temp
+    networks:
+      - cicd-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/api/system/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # CI/CD Coordinator - координатор интеграций (БЕЗ GitSync)
+  # GitSync работает на хост-машине Windows
+  cicd-coordinator:
+    build:
+      context: ./docker/ci-cd-coordinator
+      dockerfile: Dockerfile
+    container_name: cicd-coordinator
+    restart: unless-stopped
+    environment:
+      # PostgreSQL подключение к существующему контейнеру
+      POSTGRES_HOST: postgres_cicd
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: cicd
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_admin_123
+      
+      # GitLab интеграция
+      GITLAB_URL: http://gitlab
+      GITLAB_TOKEN: "YOUR_GITLAB_TOKEN_HERE"
+      GITLAB_PROJECT_ID: "1"
+      
+      # Redmine интеграция
+      REDMINE_URL: http://redmine:3000
+      REDMINE_USERNAME: admin
+      REDMINE_PASSWORD: admin
+      REDMINE_PROJECT_ID: ut103-ci
+      CHECK_INTERVAL: 300  # 5 минут
+      
+      # SonarQube интеграция
+      SONARQUBE_URL: http://sonarqube:9000
+      SONARQUBE_TOKEN: ""  # Будет создан автоматически при инициализации
+      SONARQUBE_PROJECT_KEY: ut103-ci
+      
+      # Общие настройки
+      LOG_LEVEL: INFO
+      WORKSPACE_PATH: /workspace
+      EXTERNAL_FILES_PATH: /workspace/external-files
+      
+      # Настройки автоинициализации
+      AUTO_INIT_SERVICES: "false"
+      WAIT_FOR_SERVICES: "false"
+      INIT_TIMEOUT: 1800  # 30 минут
+      
+    volumes:
+      # Рабочая директория (только для внешних файлов)
+      - cicd_workspace:/workspace
+      # Логи
+      - cicd_logs:/logs
+      
+    ports:
+      - "8085:8085"  # Health check endpoint
+      - "8090:8090"  # API endpoint
+      
+    networks:
+      - cicd-network
+      
+    external_links:
+      - postgres_cicd:postgres_cicd
+      
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8085/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+# Volumes
+volumes:
+  # GitLab
+  gitlab_config:
+    name: gitlab_config_cicd
+  gitlab_logs:
+    name: gitlab_logs_cicd
+  gitlab_data:
+    name: gitlab_data_cicd
+    
+  # Redmine
+  redmine_data:
+    name: redmine_data_cicd
+  redmine_logs:
+    name: redmine_logs_cicd
+  redmine_plugins:
+    name: redmine_plugins_cicd
+    
+  # SonarQube
+  sonarqube_data:
+    name: sonarqube_data_cicd
+  sonarqube_logs:
+    name: sonarqube_logs_cicd
+  sonarqube_extensions:
+    name: sonarqube_extensions_cicd
+  sonarqube_temp:
+    name: sonarqube_temp_cicd
+    
+  # CI/CD Coordinator
+  cicd_workspace:
+    name: cicd_workspace
+  cicd_logs:
+    name: cicd_logs
+
+# Networks
+networks:
+  cicd-network:
+    external: true
+    name: postgres_network
+
