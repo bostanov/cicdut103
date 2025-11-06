@@ -186,6 +186,6 @@ docker-compose -f docker-compose-hybrid.yml down
 ---
 
 **Версия**: 2.0 (Hybrid)  
-**Автор**: AI Assistant  
+**Автор**: Бостанов Ф.А.
 **Последнее обновление**: 6 ноября 2025
 
