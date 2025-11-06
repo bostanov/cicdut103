@@ -33,3 +33,9 @@ Thumbs.db
 .vscode/
 .idea/
 *.code-workspace
+
+# GitSync workspace (отдельный Git репозиторий)
+workspace/
+
+# Логи GitSync
+logs/
