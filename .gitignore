@@ -39,3 +39,7 @@ workspace/
 
 # Логи GitSync
 logs/
+
+# PreCommit1C в основном проекте не используется
+# Только в workspace/
+.git/hooks/pre-commit
