@@ -30,6 +30,7 @@ services:
         
         # Оптимизация ресурсов
         prometheus_monitoring['enable'] = false
+        grafana['enable'] = false
         
         # Настройка CI/CD
         gitlab_rails['gitlab_default_projects_features_builds'] = true
@@ -51,9 +52,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost/-/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 300s
+      timeout: 15s
+      retries: 10
+      start_period: 600s
     shm_size: '256m'
 
   # Redmine - управление задачами и внешними файлами
@@ -86,8 +87,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
       interval: 30s
       timeout: 30s
-      retries: 5
-      start_period: 120s
+      retries: 10
+      start_period: 300s
 
   # SonarQube - анализ качества кода
   sonarqube:
@@ -120,9 +121,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9000/api/system/status || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 300s
+      timeout: 15s
+      retries: 10
+      start_period: 600s
     ulimits:
       memlock:
         soft: -1
@@ -166,7 +167,7 @@ services:
       
       # SonarQube интеграция
       SONARQUBE_URL: http://sonarqube:9000
-      SONARQUBE_TOKEN: ""  # Будет создан автоматически при инициализации
+      SONARQUBE_TOKEN: "YOUR_SONARQUBE_TOKEN_HERE"
       SONARQUBE_PROJECT_KEY: ut103-ci
       
       # Общие настройки

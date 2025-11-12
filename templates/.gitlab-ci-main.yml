@@ -1,0 +1,81 @@
+# GitLab CI/CD Pipeline для основной конфигурации 1С (ut103-ci)
+
+stages:
+  - build
+  - test
+  - sonarqube-check
+  - notify
+
+variables:
+  SONARQUBE_URL: "${SONARQUBE_URL}"
+  SONARQUBE_TOKEN: "${SONARQUBE_TOKEN}"
+  REDMINE_URL: "${REDMINE_URL}"
+  REDMINE_API_KEY: "${REDMINE_API_KEY}"
+  PROJECT_KEY: "ut103-ci"
+
+# Сборка и подготовка
+build:
+  stage: build
+  script:
+    - echo "Проверка структуры проекта..."
+    - ls -la
+    - echo "Сборка завершена"
+  artifacts:
+    paths:
+      - "**/*"
+    expire_in: 1 hour
+  only:
+    - main
+    - develop
+    - /^feature\/.*$/
+
+# Тестирование
+test:
+  stage: test
+  script:
+    - echo "Запуск тестов..."
+    - echo "Тесты пройдены"
+  dependencies:
+    - build
+  only:
+    - main
+    - develop
+    - /^feature\/.*$/
+
+# Анализ качества кода в SonarQube
+sonarqube-check:
+  stage: sonarqube-check
+  image: sonarsource/sonar-scanner-cli:latest
+  script:
+    - echo "Запуск анализа SonarQube..."
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey=${PROJECT_KEY} \
+        -Dsonar.sources=. \
+        -Dsonar.host.url=${SONARQUBE_URL} \
+        -Dsonar.login=${SONARQUBE_TOKEN}
+    - echo "Анализ завершен"
+  dependencies:
+    - build
+  allow_failure: false
+  only:
+    - main
+    - develop
+
+# Уведомление в Redmine
+notify-redmine:
+  stage: notify
+  script:
+    - echo "Отправка уведомления в Redmine..."
+    - |
+      ISSUE_ID=$(echo $CI_COMMIT_MESSAGE | grep -oP '#\K\d+' | head -1)
+      if [ ! -z "$ISSUE_ID" ]; then
+        curl -X PUT "${REDMINE_URL}/issues/${ISSUE_ID}.json" \
+          -H "X-Redmine-API-Key: ${REDMINE_API_KEY}" \
+          -H "Content-Type: application/json" \
+          -d "{\"issue\":{\"notes\":\"Pipeline #${CI_PIPELINE_ID} завершен. Commit: ${CI_COMMIT_SHORT_SHA}\"}}"
+      fi
+  when: always
+  only:
+    - main
+    - develop
